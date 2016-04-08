@@ -19,7 +19,6 @@ class Author(object):
                '<email>%s</email>' % self.email,
                '</author>']
         return ''.join(xml)
-        # return 'Author(name=%s, affil=%s, email=%s)' % (self.name, self.affiliation.name, self.email)
 
     def __str__(self):
         return repr(self)
@@ -46,6 +45,7 @@ class Metadata(object):
         self.authors = authors
         self.year = year
         self.other = kwargs
+
     def __repr__(self):
         xml = ['<document>',
                '<title>%s</title>' % self.title,
@@ -53,8 +53,7 @@ class Metadata(object):
                '<year>%s</year>' % self.year,
                '</document>']
         return ''.join(xml)
-        # auth_str = '|'.join(map(lambda auth: auth.name, self.authors))
-        # return 'Metadata(title=%s, authors=[%s], year=%s)' % (self.title, auth_str, self.year)
+
     def __str__(self):
         return repr(self)
 
