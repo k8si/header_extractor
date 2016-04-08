@@ -9,13 +9,22 @@ INDEX_URL = 'https://papers.nips.cc/book/advances-in-neural-information-processi
 WAIT = 20  # how long to sleep (ms) after requests
 
 
-def download_index_page(outdir):
-    outfile = '%s/INDEX' % outdir
-    cmd = 'wget --output-document=%s %s' % (outfile, INDEX_URL)
+def download(target, outdoc, outdir, do_wait=True):
+    existing = set(['%s/%s' % (outdir, f) for f in os.listdir(outdir)])
+    if outdoc in existing:
+        print 'found ', outdoc, ', skipping.'
+        return
+    cmd = 'wget --output-document=%s %s' % (outdoc, target)
     print cmd
     os.system(cmd)
-    print 'sleep ', WAIT, '...'
-    time.sleep(WAIT)
+    if do_wait:
+        print 'waiting', WAIT, '...'
+        time.sleep(WAIT)
+
+
+def download_index_page(outdir):
+    outfile = '%s/INDEX' % outdir
+    download(INDEX_URL, outfile, outdir)
     return outfile
 
 
@@ -53,16 +62,12 @@ def download_paper(link, outdir):
     # download the PDF
     outfile_pdf = '%s/%s.pdf' % (outdir, outfile_base)
     pdf_req = link + '.pdf'
-    cmd = 'wget --output-document=%s %s' % (outfile_pdf, pdf_req)
-    print cmd
-    os.system(cmd)
+    download(pdf_req, outfile_pdf, outdir, do_wait=False)
 
     # download the Bibtex file
     outfile_bib = '%s/%s.bib' % (outdir, outfile_base)
     bibtex_req = link + '/bibtex'
-    cmd = 'wget --output-document=%s %s' % (outfile_bib, bibtex_req)
-    print cmd
-    os.system(cmd)
+    download(bibtex_req, outfile_bib, outdir, do_wait=True)
 
 
 if __name__ == '__main__':
@@ -77,10 +82,6 @@ if __name__ == '__main__':
     if n < 0:
         for link in links:
             download_paper(link, args.outdir)
-            print 'sleep ', WAIT, '...'
-            time.sleep(WAIT)
     else:
         for link in links[:n]:
             download_paper(link, args.outdir)
-            print 'sleep ', WAIT, '...'
-            time.sleep(WAIT)
