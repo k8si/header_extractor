@@ -3,3 +3,4 @@ build/
 data/
 dist/
 header_extractor.egg-info
+.idea
