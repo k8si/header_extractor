@@ -74,8 +74,13 @@ if __name__ == '__main__':
     indexfile = download_index_page(args.outdir)
     links = extract_index_links(codecs.open(indexfile, 'r', 'utf8').read())
     n = args.npapers
-    for link in links[:n]:
-        download_paper(link, args.outdir)
-        print 'sleep ', WAIT, '...'
-        time.sleep(WAIT)
-
+    if n < 0:
+        for link in links:
+            download_paper(link, args.outdir)
+            print 'sleep ', WAIT, '...'
+            time.sleep(WAIT)
+    else:
+        for link in links[:n]:
+            download_paper(link, args.outdir)
+            print 'sleep ', WAIT, '...'
+            time.sleep(WAIT)
