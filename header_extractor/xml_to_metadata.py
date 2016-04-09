@@ -200,7 +200,7 @@ def write_docs(docs, outdir):
     for docid, doc in docs.items():
         outfname = '%s/%s.metadata' % (outdir, docid)
         with codecs.open(outfname, 'w', 'utf8') as writer:
-            soup = BeautifulSoup(repr(doc), 'xml')
+            soup = BeautifulSoup(repr(doc))
             writer.write(soup.prettify())
 
 
