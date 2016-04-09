@@ -6,7 +6,7 @@ import bibtexparser as btp
 
 
 def enc_utf8(s):
-    if s is None:
+    if s is None or len(s) == 0:
         return 'None'.encode('utf8')
     else:
         return s.encode('utf8')
@@ -20,11 +20,14 @@ class Author(object):
         self.email = email
 
     def __repr__(self):
-        xml = ['<author>',
-               '<name>%s</name>' % enc_utf8(self.name),
-               '%s' % (repr(self.affiliation)),
-               '<email>%s</email>' % enc_utf8(self.email),
-               '</author>']
+        xml = ['<author>']
+        xml.append('<name>%s</name>' % enc_utf8(self.name))
+        if self.affiliation:
+            xml.append('%s' % repr(self.affiliation))
+        else:
+            xml.append('<affiliation>None</affiliation>')
+        xml.append('<email>%s</email>' % enc_utf8(self.email))
+        xml.append('</author>')
         return ''.join(xml)
 
     def __str__(self):
@@ -66,9 +69,10 @@ class Metadata(object):
 
 
 class Doc(object):
-    def __init__(self, docid, indir):
+    def __init__(self, docid, indir, use_bibtex=False):
         self.docid = docid
         self.indir = indir.rstrip('/')
+        self.use_bibtex = use_bibtex
         self.xml_file = '%s/%s.cermxml' % (self.indir, self.docid)
         self.bib_file = '%s/%s.bib' % (self.indir, self.docid)
         self.xml_metadata = self._process_xml()
@@ -151,17 +155,16 @@ class Doc(object):
 
         def extract_authors(bibmap):
             all = bibmap[u'author']
-            names = all.split('and')
-            authors = []
-            for name in names:
-                authors.append(Author(self.docid, name=name))
-            return authors
+            names = filter(lambda n: len(n) > 0 and n != ' ', all.split('and'))
+            return [Author(self.docid, name=name) for name in names]
 
         with open(self.bib_file) as bibfile:
             s = bibfile.read()
         bib_db = btp.loads(s)
         bmap = bib_db.entries[0]
         authors = extract_authors(bmap)
+        for a in authors:
+            print a
         title = bmap[u'title']
         year = bmap[u'year']
         mdata = Metadata(self.docid,
@@ -171,16 +174,19 @@ class Doc(object):
         return mdata
 
     def __repr__(self):
-        return repr(self.xml_metadata)
+        if self.use_bibtex:
+            return repr(self.bib_metadata)
+        else:
+            return repr(self.xml_metadata)
 
 
-def process_dir(indir):
+def process_dir(indir, use_bibtex=False):
     xml_files = glob.glob('%s/*.cermxml' % indir)
     docs = {}
     for fname in xml_files:
         base = fname.split('/')[-1].split('.')[0]
         try:
-            doc = Doc(base, indir)
+            doc = Doc(base, indir, use_bibtex=use_bibtex)
             docs[base] = doc
         except Exception:
             raise
@@ -198,8 +204,11 @@ def write_docs(docs, outdir):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Convert (Cerm)XML to paper metadata.')
     parser.add_argument('indir', type=str, help='directory where *.cermxml files are stored')
+    parser.add_argument('-b', '--use-bibtex', type=int, default=0,
+                        help='use *.bib files instead of *.cermxml for metadata extraction')
     args = parser.parse_args()
     print args
-    docs = process_dir(args.indir)
+    use_bibtex = bool(args.use_bibtex)
+    docs = process_dir(args.indir, use_bibtex=use_bibtex)
     write_docs(docs, args.indir)
 
