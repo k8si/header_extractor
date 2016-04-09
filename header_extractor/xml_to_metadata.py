@@ -5,6 +5,13 @@ import codecs
 import bibtexparser as btp
 
 
+def enc_utf8(s):
+    if s is None:
+        return 'None'.encode('utf8')
+    else:
+        return s.encode('utf8')
+
+
 class Author(object):
     def __init__(self, docid, name=None, affiliation=None, email=None):
         self.docid = docid
@@ -14,9 +21,9 @@ class Author(object):
 
     def __repr__(self):
         xml = ['<author>',
-               '<name>%s</name>' % self.name,
+               '<name>%s</name>' % enc_utf8(self.name),
                '%s' % (repr(self.affiliation)),
-               '<email>%s</email>' % self.email,
+               '<email>%s</email>' % enc_utf8(self.email),
                '</author>']
         return ''.join(xml)
 
@@ -33,7 +40,7 @@ class Affiliation(object):
 
     def __repr__(self):
         xml = ['<affiliation>',
-               '<name>%s</name>' % self.name,
+               '<name>%s</name>' % enc_utf8(self.name),
                '</affiliation>']
         return ''.join(xml)
 
@@ -48,9 +55,9 @@ class Metadata(object):
 
     def __repr__(self):
         xml = ['<document>',
-               '<title>%s</title>' % self.title,
+               '<title>%s</title>' % enc_utf8(self.title),
                '<authors>%s</authors>' % (''.join([repr(a) for a in self.authors])),
-               '<year>%s</year>' % self.year,
+               '<year>%s</year>' % enc_utf8(self.year),
                '</document>']
         return ''.join(xml)
 
@@ -61,9 +68,9 @@ class Metadata(object):
 class Doc(object):
     def __init__(self, docid, indir):
         self.docid = docid
-        self.indir = indir
-        self.xml_file = '%s/%s.cermxml' % (dir, id)
-        self.bib_file = '%s/%s.bib' % (dir, id)
+        self.indir = indir.rstrip('/')
+        self.xml_file = '%s/%s.cermxml' % (self.indir, self.docid)
+        self.bib_file = '%s/%s.bib' % (self.indir, self.docid)
         self.xml_metadata = self._process_xml()
         self.bib_metadata = self._process_bib()
 
@@ -84,6 +91,7 @@ class Doc(object):
             cg = header.find('contrib-group')
             if cg is None: return None
             for aff in cg.find_all('aff'):
+                if aff is None: continue
                 affid = aff.find('label').string
                 aff = Affiliation(self.docid,
                                   affid,
@@ -93,9 +101,13 @@ class Doc(object):
 
             for contrib in cg.find_all('contrib'):
                 if contrib['contrib-type'] == 'author':
-                    affid = contrib.find('xref').string
-                    assert affid in affmap, '%s %s' % (affid, ','.join(affmap.keys()))
-                    aff = affmap[affid]
+                    xref = contrib.find('xref')
+                    if xref is not None:
+                        affid = xref.string
+                        assert affid in affmap, '%s %s' % (affid, ','.join(affmap.keys()))
+                        aff = affmap[affid]
+                    else:
+                        aff = None
                     emailtag = contrib.find('email')
                     if emailtag:
                         email = emailtag.string
@@ -116,7 +128,14 @@ class Doc(object):
                 return year.string
             return None
 
-        xml = codecs.open(self.xml_file, 'r', 'utf8').read()
+        print self.xml_file
+        try:
+            xml = codecs.open(self.xml_file, 'r', 'utf8').read()
+        except UnicodeDecodeError:
+            try:
+                xml = open(self.xml_file, 'r').read()
+            except Exception:
+                raise
         soup = BeautifulSoup(xml)
         header = soup.find('front')
         title = extract_title(header)
@@ -160,8 +179,11 @@ def process_dir(indir):
     docs = {}
     for fname in xml_files:
         base = fname.split('/')[-1].split('.')[0]
-        doc = Doc(base, indir)
-        docs[base] = doc
+        try:
+            doc = Doc(base, indir)
+            docs[base] = doc
+        except Exception:
+            raise
     return docs
 
 
