@@ -97,10 +97,15 @@ class Doc(object):
             for aff in cg.find_all('aff'):
                 if aff is None: continue
                 affid = aff.find('label').string
+                inst = aff.find('institution')
+                if inst:
+                    inst_string = inst.string
+                else:
+                    inst_string = None
                 aff = Affiliation(self.docid,
                                   affid,
                                   aff,
-                                  name=aff.find('institution').string)
+                                  name=inst_string)
                 affmap[affid] = aff
 
             for contrib in cg.find_all('contrib'):
