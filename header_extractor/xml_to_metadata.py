@@ -57,11 +57,14 @@ class Metadata(object):
         self.other = kwargs
 
     def __repr__(self):
-        xml = ['<document>',
-               '<title>%s</title>' % enc_utf8(self.title),
-               '<authors>%s</authors>' % (''.join([repr(a) for a in self.authors])),
-               '<year>%s</year>' % enc_utf8(self.year),
-               '</document>']
+        xml = ['<document>']
+        xml.append('<title>%s</title>' % enc_utf8(self.title))
+        if self.authors:
+            xml.append('<authors>%s</authors>' % (''.join([repr(a) for a in self.authors])))
+        else:
+            xml.append('<authors>None</authors>')
+        xml.append('<year>%s</year>' % enc_utf8(self.year))
+        xml.append('</document>')
         return ''.join(xml)
 
     def __str__(self):
@@ -137,7 +140,6 @@ class Doc(object):
                 return year.string
             return None
 
-        print self.xml_file
         try:
             xml = codecs.open(self.xml_file, 'r', 'utf8').read()
         except UnicodeDecodeError:
