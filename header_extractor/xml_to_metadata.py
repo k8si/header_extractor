@@ -163,8 +163,6 @@ class Doc(object):
         bib_db = btp.loads(s)
         bmap = bib_db.entries[0]
         authors = extract_authors(bmap)
-        for a in authors:
-            print a
         title = bmap[u'title']
         year = bmap[u'year']
         mdata = Metadata(self.docid,
