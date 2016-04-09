@@ -9,7 +9,7 @@ WAIT = 20  # how long to sleep (ms) after requests
 class Crawler(object):
 
     def __init__(self, outdir, index_url):
-        self.outdir = outdir
+        self.outdir = outdir.rstrip('/')
         self.index_url = index_url
         self.index_file = self.download_index_page()
         self.links = self.extract_index_links()
