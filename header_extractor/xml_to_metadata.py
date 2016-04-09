@@ -59,9 +59,9 @@ class Metadata(object):
 
 
 class Doc(object):
-    def __init__(self, id, dir):
-        self.id = id
-        self.dir = dir
+    def __init__(self, docid, indir):
+        self.docid = docid
+        self.indir = indir
         self.xml_file = '%s/%s.cermxml' % (dir, id)
         self.bib_file = '%s/%s.bib' % (dir, id)
         self.xml_metadata = self._process_xml()
@@ -85,7 +85,7 @@ class Doc(object):
             if cg is None: return None
             for aff in cg.find_all('aff'):
                 affid = aff.find('label').string
-                aff = Affiliation(self.id,
+                aff = Affiliation(self.docid,
                                   affid,
                                   aff,
                                   name=aff.find('institution').string)
@@ -101,7 +101,7 @@ class Doc(object):
                         email = emailtag.string
                     else:
                         email = None
-                    author = Author(self.id,
+                    author = Author(self.docid,
                                     name=contrib.find('string-name').string,
                                     affiliation=aff,
                                     email=email)
@@ -122,7 +122,7 @@ class Doc(object):
         title = extract_title(header)
         authors = extract_authors(header)
         year = extract_year(header)
-        mdata = Metadata(self.id,
+        mdata = Metadata(self.docid,
                          title=title,
                          authors=authors,
                          year=year)
@@ -135,7 +135,7 @@ class Doc(object):
             names = all.split('and')
             authors = []
             for name in names:
-                authors.append(Author(self.id, name=name))
+                authors.append(Author(self.docid, name=name))
             return authors
 
         with open(self.bib_file) as bibfile:
@@ -145,7 +145,7 @@ class Doc(object):
         authors = extract_authors(bmap)
         title = bmap[u'title']
         year = bmap[u'year']
-        mdata = Metadata(self.id,
+        mdata = Metadata(self.docid,
                          title=title,
                          authors=authors,
                          year=year)

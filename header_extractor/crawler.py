@@ -3,7 +3,7 @@ import time
 import codecs
 from bs4 import BeautifulSoup
 
-WAIT = 20  # how long to sleep (ms) after requests
+WAIT = 30  # how long to sleep (ms) after requests
 
 
 class Crawler(object):
