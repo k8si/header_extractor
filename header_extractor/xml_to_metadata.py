@@ -79,7 +79,8 @@ class Doc(object):
         self.xml_file = '%s/%s.cermxml' % (self.indir, self.docid)
         self.bib_file = '%s/%s.bib' % (self.indir, self.docid)
         self.xml_metadata = self._process_xml()
-        self.bib_metadata = self._process_bib()
+        if self.use_bibtex:
+            self.bib_metadata = self._process_bib()
 
     def _process_xml(self):
 
